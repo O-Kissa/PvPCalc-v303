@@ -1,0 +1,31 @@
+name: Build PvPCalc
+on:
+  push:
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Unpack the project zip
+        run: |
+          for z in PvPCalc-*.zip; do unzip -q "$z" -d _src; done
+          ls _src/PvPCalc
+          test -f _src/PvPCalc/build.gradle
+          test -f _src/PvPCalc/src/main/resources/fabric.mod.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 9.2.1
+      - name: Build
+        working-directory: _src/PvPCalc
+        run: gradle build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pvpcalc-jar
+          path: |
+            _src/PvPCalc/build/libs/*.jar
+            !_src/PvPCalc/build/libs/*-sources.jar
